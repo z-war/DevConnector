@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { withRouter } from "react-router-dom";
 import { registerUser } from "../../actions/authAction";
-import axios from "axios";
+
 import classnames from "classnames";
 class Register extends Component {
   constructor() {
@@ -18,6 +19,16 @@ class Register extends Component {
     this.onSubmit = this.onSubmit.bind(this);
   }
 
+  componentDidMount() {
+    if (this.props.auth.isAuthenticated) {
+      this.props.history.push("/dashboard");
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.errors) {
+      this.setState({ errors: nextProps.errors });
+    }
+  }
   onChange(e) {
     this.setState({ [e.target.name]: e.target.value });
   }
@@ -29,22 +40,12 @@ class Register extends Component {
       password: this.state.password,
       password2: this.state.password2,
     };
-    this.props.registerUser(newUser);
-    // axios
-    //   .post("/api/users/register", newUser)
-    //   .then((res) => {
-    //     console.log(res.data);
-    //   })
-    //   .catch((err) => {
-    //     this.setState({ errors: err.response.data });
-    //   });
+    this.props.registerUser(newUser, this.props.history);
   }
   render() {
-    const { user } = this.props.auth;
     const { errors } = this.state;
     return (
       <div className="register">
-        {user ? user.name : null}
         <div className="container">
           <div className="row">
             <div className="col-md-8 m-auto">
@@ -126,11 +127,13 @@ class Register extends Component {
     );
   }
 }
-Register.protoTypes = {
+Register.propTypes = {
   registerUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
+  errors: state.errors,
 });
-export default connect(mapStateToProps, { registerUser })(Register);
+export default connect(mapStateToProps, { registerUser })(withRouter(Register));
